@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blockchain Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+    {% if 'username' in session %}
+        <div class="header">
+            <h2>Welcome, {{ session['username'] }}!</h2>
+            <a href="{{ url_for('logout') }}">Logout</a><br><br>
+        </div>
+        <h3>Blockchain Explorer</h3>
+        <ul>
+            {% for block in blockchain %}
+                <li>
+                    <strong>Index:</strong> {{ block.block_index }}<br>
+                    <strong>Previous Hash:</strong> {{ block.previous_hash }}<br>
+                    <strong>Timestamp:</strong> {{ block.timestamp }}<br>
+                    <strong>Data:</strong> {{ block.data }}<br>
+                    <strong>Hash:</strong> {{ block.hash }}<br><br>
+                </li>
+            {% endfor %}
+        </ul>
+        <h3>Uploaded Files</h3>
+        <ul>
+            {% for file in files %}
+                <li>{{ file }} - <a href="{{ url_for('download_file', filename=file) }}">Download</a></li>
+            {% endfor %}
+        </ul>
+        <h3>Upload File</h3>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file-upload" class="btn">Upload</label>
+            <input id="file-upload" type="file" name="file" required><br><br>
+            <button type="submit" class="btn">Submit</button>
+        </form>
+    {% else %}
+        <div class="header">
+            <h2>Please login to access the Blockchain Explorer</h2>
+            <a href="{{ url_for('login') }}">Login</a>
+        </div>
+    {% endif %}
+</body>
+</html>
