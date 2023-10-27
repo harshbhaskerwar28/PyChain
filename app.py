@@ -1,17 +1,18 @@
-import os
-import sqlite3
-import hashlib
-from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, g
+import hashlib
+import os
+from datetime import datetime
+import sqlite3
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
-DATABASE = 'blockchain.db'
-UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+DATABASE = os.path.join(UPLOAD_FOLDER, 'blockchain.db')
 
-users = {'bharath': 'password'}
+users = {'bharath': 'password','teja': 'password'}
+admins = {'admin': 'password'}
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -64,22 +65,22 @@ init_db()
 def index():
     if 'username' in session:
         user = session['username']
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('SELECT * FROM blockchain')
-        blockchain_data = cursor.fetchall()
-        blockchain = []
-        for block_data in blockchain_data:
-            block = Block(block_data[0], block_data[1], block_data[2], block_data[3], block_data[4])
-            blockchain.append(block)
-        cursor.execute('SELECT * FROM user_files')
-        user_files_data = cursor.fetchall()
-        user_files = {}
-        for data in user_files_data:
-            if data[0] not in user_files:
-                user_files[data[0]] = []
-            user_files[data[0]].append(data[1])
-        return render_template('index.html', blockchain=blockchain, files=user_files.get(user, []))
+        if user in admins:
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute('SELECT * FROM blockchain')
+            blockchain_data = cursor.fetchall()
+            blockchain = []
+            for block_data in blockchain_data:
+                block = Block(block_data[0], block_data[1], block_data[2], block_data[3], block_data[4])
+                blockchain.append(block)
+            return render_template('index.html', blockchain=blockchain, is_admin=True)
+        else:
+            cursor = get_db().cursor()
+            cursor.execute('SELECT * FROM user_files WHERE username=?', (user,))
+            files_data = cursor.fetchall()
+            files = [file_data[1] for file_data in files_data]
+            return render_template('index.html', files=files, is_admin=False)
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -90,8 +91,20 @@ def login():
         if username in users and users[username] == password:
             session['username'] = username
             return redirect(url_for('index'))
+        elif username in admins and admins[username] == password:
+            session['username'] = username
+            return redirect(url_for('index'))
         return redirect(url_for('login'))
     return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        users[username] = password
+        return redirect(url_for('login'))
+    return render_template('register.html')
 
 @app.route('/logout')
 def logout():
@@ -160,4 +173,4 @@ def download_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 
