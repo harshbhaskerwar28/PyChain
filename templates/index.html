@@ -1,43 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Blockchain Explorer</title>
+    <title>File Upload and Blockchain Explorer</title>
 </head>
 <body>
-    {% if 'username' in session %}
-        <div class="header">
-            <h2>Welcome, {{ session['username'] }}!</h2>
-            <a href="{{ url_for('logout') }}">Logout</a><br><br>
-        </div>
-        <h3>Blockchain Explorer</h3>
+    {% if is_admin %}
+        <h1>Blockchain Explorer</h1>
+        <a href="{{ url_for('logout') }}">Logout</a><br><br>
         <ul>
             {% for block in blockchain %}
-                <li>
-                    <strong>Index:</strong> {{ block.block_index }}<br>
-                    <strong>Previous Hash:</strong> {{ block.previous_hash }}<br>
-                    <strong>Timestamp:</strong> {{ block.timestamp }}<br>
-                    <strong>Data:</strong> {{ block.data }}<br>
-                    <strong>Hash:</strong> {{ block.hash }}<br><br>
-                </li>
+                <li>Block {{ block.block_index }} - {{ block.timestamp }} - Hash: {{ block.hash }}</li>
             {% endfor %}
         </ul>
-        <h3>Uploaded Files</h3>
+    {% else %}
+        <h2>Welcome, {{ session['username'] }}!</h2>
+        <a href="{{ url_for('logout') }}">Logout</a><br><br>
+        <h3>Uploaded Files:</h3>
         <ul>
             {% for file in files %}
-                <li>{{ file }} - <a href="{{ url_for('download_file', filename=file) }}">Download</a></li>
+                <li>{{ file }} <form action="/delete" method="post"><input type="hidden" name="filename" value="{{ file }}"><input type="submit" value="Delete"></form></li>
             {% endfor %}
         </ul>
-        <h3>Upload File</h3>
+        <h3>Upload New File:</h3>
         <form action="/upload" method="post" enctype="multipart/form-data">
-            <label for="file-upload" class="btn">Upload</label>
-            <input id="file-upload" type="file" name="file" required><br><br>
-            <button type="submit" class="btn">Submit</button>
+            <input type="file" name="file">
+            <input type="submit" value="Upload">
         </form>
-    {% else %}
-        <div class="header">
-            <h2>Please login to access the Blockchain Explorer</h2>
-            <a href="{{ url_for('login') }}">Login</a>
-        </div>
     {% endif %}
 </body>
 </html>
