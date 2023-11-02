@@ -168,9 +168,26 @@ def upload_file():
     
     return redirect(url_for('index'))
 
+@app.route('/delete', methods=['POST'])
+def delete_file():
+    if 'username' in session:
+        user = session['username']
+        if user not in users:
+            return redirect(url_for('login'))
+        filename = request.form['filename']
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('DELETE FROM user_files WHERE username=? AND filename=?', (user, filename))
+        cursor.execute('DELETE FROM blockchain WHERE data=?', (f'File: {filename}',))
+        db.commit()
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    return redirect(url_for('index'))
+
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
