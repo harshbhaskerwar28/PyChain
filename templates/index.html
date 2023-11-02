@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>File Upload and Blockchain Explorer</title>
+    <title>Blockchain Explorer</title>
 </head>
 <body>
     {% if is_admin %}
@@ -14,7 +14,7 @@
         </ul>
     {% else %}
         <h2>Welcome, {{ session['username'] }}!</h2>
-        <a href="{{ url_for('logout') }}">Logout</a><br><br>
+        <a href="{{ url_for('logout') }}">Log Out</a>
         <h3>Uploaded Files:</h3>
         <ul>
             {% for file in files %}
@@ -22,10 +22,10 @@
             {% endfor %}
         </ul>
         <h3>Upload New File:</h3>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="file">
-            <input type="submit" value="Upload">
-        </form>
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file" id="upload" name="file" >
+                <button type="submit" id="submit" >Upload</button>
+            </form>
     {% endif %}
 </body>
 </html>
