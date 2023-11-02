@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, g
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, g, make_response
 import hashlib
 import os
 from datetime import datetime
 import sqlite3
+from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -10,6 +11,9 @@ app.secret_key = 'supersecretkey'
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 DATABASE = os.path.join(UPLOAD_FOLDER, 'blockchain.db')
+
+ENCRYPTION_KEY = Fernet.generate_key()
+cipher_suite = Fernet(ENCRYPTION_KEY)
 
 users = {'bharath': 'password','teja': 'password'}
 admins = {'admin': 'password'}
@@ -123,7 +127,10 @@ def upload_file():
     if file.filename == '':
         return redirect(request.url)
     
-    file.save(os.path.join(UPLOAD_FOLDER, file.filename))
+    encrypted_data = cipher_suite.encrypt(file.read())
+    
+    with open(os.path.join(UPLOAD_FOLDER, file.filename), 'wb') as encrypted_file:
+        encrypted_file.write(encrypted_data)
     
     user = session['username']
     db = get_db()
@@ -168,6 +175,18 @@ def upload_file():
     
     return redirect(url_for('index'))
 
+@app.route('/download/<file>')
+def download_file(file):
+    file_path = os.path.join(UPLOAD_FOLDER, file)
+    with open(file_path, 'rb') as encrypted_file:
+        encrypted_data = encrypted_file.read()
+    
+    decrypted_data = cipher_suite.decrypt(encrypted_data)
+
+    response = make_response(decrypted_data)
+    response.headers['Content-Disposition'] = f'attachment; filename={file}'
+    return response
+
 @app.route('/delete', methods=['POST'])
 def delete_file():
     if 'username' in session:
@@ -184,10 +203,6 @@ def delete_file():
         if os.path.exists(file_path):
             os.remove(file_path)
     return redirect(url_for('index'))
-
-@app.route('/download/<filename>')
-def download_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
