@@ -1,14 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register</title>
+  <meta charset="UTF-8">
+  <title>BlockChain Storage</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
 <body>
-    <h2>Register</h2>
-    <form method="post">
-        <input type="text" name="username" placeholder="Username"><br><br>
-        <input type="password" name="password" placeholder="Password"><br><br>
-        <input type="submit" value="Register">
-    </form>
+<form method="post">
+  <div class="wrapper">
+    <div class="heading">
+      <h2>Welcome!</h2>
+      <p>Register your account</p>
+    </div>
+    <div class="input-group">
+    <input type="text" name="username" id="username" class="input-field" placeholder="Username" >
+    </div>
+    <div class="input-group">
+    <input type="password" name="password" id="password" class="input-field" placeholder="Password" >
+    </div>
+    <div class="input-group row">
+      <div class="row">
+      <a href="{{ url_for('login') }}" target="_self">Login Here</a>
+      </div>
+    </div>
+    <div class="input-group">
+    <button type="submit" value="Register">Register<i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+  </div>
+</form>
 </body>
 </html>
