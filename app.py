@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, g
-import hashlib
+import hashlib #hash
 import os
 from datetime import datetime
 import sqlite3
